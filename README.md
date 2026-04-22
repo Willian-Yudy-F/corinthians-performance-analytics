@@ -67,7 +67,7 @@ moments of the journey.
 
 **1. Clone the repository:**
 ```bash
-git clone https://github.com/YOUR_USERNAME/corinthians-performance-analytics
+git clone https://github.com/Willian-Yudy-F/corinthians-performance-analytics
 cd corinthians-performance-analytics
 ```
 
