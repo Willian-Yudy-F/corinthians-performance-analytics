@@ -6,6 +6,12 @@
 
 ---
 
+
+## In plain English
+A data story told with Python. I collected the results of 75 Corinthians matches (my club) across two seasons, cleaned them with **pandas**, and built one dashboard image with **matplotlib** that shows how the team went from almost being relegated to winning two titles. It is a small project, but it covers the full analytics loop: gather data → clean it → calculate metrics → visualise → explain what happened.
+
+**What I learned:** reshaping messy match data, calculating rolling win rates, and designing a chart that a non-technical fan can read in ten seconds.
+
 ## The Story
 
 In late October 2024, Sport Club Corinthians Paulista was 18th in the
