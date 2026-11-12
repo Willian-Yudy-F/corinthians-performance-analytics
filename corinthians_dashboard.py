@@ -1,12 +1,18 @@
+from pathlib import Path
+import argparse
+
 import pandas as pd
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib.patches as mpatches
 import numpy as np
-import warnings
-warnings.filterwarnings('ignore')
+
+DATA_NOTE = (
+    'Illustrative, manually compiled dataset. '
+    'Do not use as an official historical match record.'
+)
 
 jogos_raw = [
     ("2024-01-21","Paulistão","Guarani",1,0,"Casa"),
@@ -91,6 +97,11 @@ df['data'] = pd.to_datetime(df['data'])
 df['resultado'] = df.apply(lambda r: 'V' if r.gols_cor > r.gols_adv else ('E' if r.gols_cor == r.gols_adv else 'D'), axis=1)
 df['saldo'] = df['gols_cor'] - df['gols_adv']
 
+if df.empty or df[['data', 'competicao', 'adversario']].isna().any().any():
+    raise ValueError('Every sample match needs a date, competition and opponent.')
+if (df[['gols_cor', 'gols_adv']] < 0).any().any():
+    raise ValueError('Goal values cannot be negative.')
+
 def fase(d):
     if d < pd.Timestamp('2024-07-01'): return '1_Crise'
     elif d < pd.Timestamp('2024-10-17'): return '2_Transicao'
@@ -110,7 +121,7 @@ plt.rcParams.update({'font.family':'DejaVu Sans','text.color':COR_TX,'axes.label
     'axes.grid':True,'grid.alpha':0.4})
 
 fig = plt.figure(figsize=(22,16), facecolor=COR_BG)
-fig.suptitle('SPORT CLUB CORINTHIANS PAULISTA  ·  From Relegation Candidate to National Champion  ·  2024–2026',
+fig.suptitle('SPORT CLUB CORINTHIANS PAULISTA  ·  Visual Analytics Prototype  ·  2024–2026',
              fontsize=16, fontweight='bold', color=COR_TX, y=0.97)
 
 gs = gridspec.GridSpec(4,4,figure=fig,hspace=0.6,wspace=0.4,
@@ -151,10 +162,8 @@ for xi,yi,c in zip(x,y,am['cor']): ax1.scatter(xi,yi,color=c,s=50,zorder=5,edgec
 ax1.axhline(y=50,color=COR_E,linewidth=1,linestyle='--',alpha=0.7)
 ax1.annotate('Ramón Díaz\nchega',xy=(7,y[7] if len(y)>7 else 40),xytext=(5,22),fontsize=7,color=COR_ST,
     arrowprops=dict(arrowstyle='->',color=COR_ST,lw=0.8))
-ax1.annotate('Memphis\nDepay + 9 wins!',xy=(10,y[10] if len(y)>10 else 55),xytext=(9,72),fontsize=7,color='#4fc3f7',
+ax1.annotate('Late-2024\nturnaround',xy=(10,y[10] if len(y)>10 else 55),xytext=(9,72),fontsize=7,color='#4fc3f7',
     arrowprops=dict(arrowstyle='->',color='#4fc3f7',lw=0.8))
-ax1.annotate('0.004% chance\nCopa BR 2025',xy=(10,y[10] if len(y)>10 else 55),xytext=(11,22),fontsize=6.5,color=COR_E,
-    arrowprops=dict(arrowstyle='->',color=COR_E,lw=0.8))
 ax1.set_xticks(x); ax1.set_xticklabels(am['ms'],rotation=45,ha='right',fontsize=7)
 ax1.set_ylabel('Win Rate (%)',fontsize=9,color=COR_ST); ax1.set_ylim(0,100)
 ax1.set_title('Monthly Win Rate Trend  ·  2024–2026',fontsize=10,color=COR_TX,pad=8,fontweight='bold')
@@ -200,14 +209,11 @@ ax4=fig.add_subplot(gs[3,2:]); ax4.set_facecolor('#111111'); ax4.axis('off')
 ax4.set_title('Key Milestones  ·  The Full Story',fontsize=10,color=COR_TX,pad=8,fontweight='bold',loc='left',x=0.03)
 ax4.axvline(x=0.12,ymin=0.05,ymax=0.95,color=COR_GR,linewidth=1.5)
 marcos=[
-    ("Jan 2024",COR_D,"Mano Menezes demitido após 4 derrotas"),
-    ("Jul 2024",COR_E,"Ramón Díaz assume. Time era 19º no Brasileirão"),
-    ("Out 2024",COR_E,"Eliminado da Sul-Americana e Copa do Brasil"),
-    ("Out 2024",'#4fc3f7',"Apenas 0.004% de chance → Copa do Brasil 2025"),
-    ("Out 2024",COR_V,"Memphis Depay chega. Série histórica de 9 vitórias!"),
-    ("Nov 2024",COR_V,"Yuri Alberto: 30 gols, artilheiro do Brasil em 2024"),
-    ("Dez 2024",COR_V,"7º lugar no Brasileirão → Vaga na Libertadores 2025"),
-    ("Dez 2025",'#ffd700',"TETRACAMPEÃO Copa do Brasil — vence Vasco 2x0"),
+    ("H1 2024",COR_D,"Fase de crise definida para este protótipo"),
+    ("Jul 2024",COR_E,"Início da fase de transição do recorte"),
+    ("Out 2024",COR_E,"Início da fase de virada do recorte"),
+    ("Out 2024",COR_V,"Recorte ilustrativo mostra melhora de resultados"),
+    ("Dez 2025",'#ffd700',"TETRACAMPEÃO Copa do Brasil — vence Vasco 2x1"),
     ("Fev 2026",'#ffd700',"SUPERCOPA REI — Corinthians 2x0 Flamengo"),
 ]
 for i,(data,cor,texto) in enumerate(marcos):
@@ -218,8 +224,12 @@ for i,(data,cor,texto) in enumerate(marcos):
 
 fig.text(0.5,0.02,'Data: Brasileirão · Copa do Brasil · Copa Sul-Americana · Paulistão · Supercopa Rei  ·  Built with Python & Matplotlib',
          ha='center',fontsize=7.5,color=COR_ST)
+fig.text(0.5,0.006,DATA_NOTE,ha='center',fontsize=7,color='#ffcc80')
 
-plt.savefig(str(__import__('pathlib').Path.home()/'Downloads'/'corinthians_dashboard_2024_2026.png'),
+parser = argparse.ArgumentParser(description='Render the Corinthians analytics prototype.')
+parser.add_argument('--output', type=Path, default=Path(__file__).with_name('corinthians_dashboard_2024_2026.png'))
+args = parser.parse_args()
+args.output.parent.mkdir(parents=True, exist_ok=True)
+plt.savefig(args.output,
             dpi=150,bbox_inches='tight',facecolor=COR_BG)
-print('Dashboard salvo em ~/Downloads/corinthians_dashboard_2024_2026.png')
-plt.show()
+print(f'Dashboard saved to {args.output}')
