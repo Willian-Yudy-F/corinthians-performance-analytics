@@ -1,105 +1,54 @@
+# Corinthians Performance Analytics — visual prototype
 
-# Corinthians Performance Analytics (2024–2026)
-### From Relegation Candidate to National Champion
+[![CI](https://github.com/Willian-Yudy-F/corinthians-performance-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/Willian-Yudy-F/corinthians-performance-analytics/actions/workflows/ci.yml)
 
-![Dashboard](corinthians_dashboard_2024_2026.png)
+![Dashboard preview](corinthians_dashboard_2024_2026.png)
 
----
+A Python and Matplotlib prototype for exploring how a football performance story can be presented in a single executive dashboard.
 
+## Important data note
 
-## In plain English
-A data story told with Python. I collected the results of 75 Corinthians matches (my club) across two seasons, cleaned them with **pandas**, and built one dashboard image with **matplotlib** that shows how the team went from almost being relegated to winning two titles. It is a small project, but it covers the full analytics loop: gather data → clean it → calculate metrics → visualise → explain what happened.
+The 75 match rows inside `corinthians_dashboard.py` were manually compiled for visual experimentation. They do not have row-level citations and several historical fields have not been audited against an official match database. The calculated KPIs therefore describe the **included sample**, not an authoritative Corinthians record.
 
-**What I learned:** reshaping messy match data, calculating rolling win rates, and designing a chart that a non-technical fan can read in ten seconds.
+This limitation is now printed on the dashboard itself. The project should be assessed for its data transformation and visual design, not used as a source for sporting statistics.
 
-## The Story
+Two headline milestones are independently supported by official CBF reports:
 
-In late October 2024, Sport Club Corinthians Paulista was 18th in the
-Brasileirão — deep in the relegation zone — with only a **0.004% probability**
-of qualifying for the Copa do Brasil 2025.
+- Corinthians won the 2025 Copa do Brasil after a 0–0 first leg and a 2–1 win over Vasco in the final match: [CBF report](https://www.cbf.com.br/futebol-brasileiro/noticias/copa-brasil-masculino/a/corinthians-vence-vasco-e-conquista-seu-quarto-titulo-da-copa-do-brasil).
+- Corinthians won the 2026 Supercopa Rei 2–0 against Flamengo: [CBF report](https://www.cbf.com.br/futebol-brasileiro/noticias/supercopa-do-brasil/profissional/corinthians-vence-flamengo-e-conquista-supercopa-rei-superbet-2026).
 
-By February 2026, Corinthians had:
-- Survived relegation with a historic run of **9 consecutive wins**
-- Finished **7th in the Brasileirão**, securing a Libertadores spot
-- Won the **Copa do Brasil 2025** (Tetracampeão), beating Vasco 2–0
-- Won the **Supercopa Rei 2026**, beating Flamengo 2–0
+## What the code demonstrates
 
-This project uses Python to analyze and visualize that full journey across
-**75 matches** and **5 competitions**.
+- conversion of match rows into a pandas DataFrame;
+- derived result, goal-difference, phase and monthly fields;
+- aggregation by month, competition and project-defined phase;
+- a multi-panel Matplotlib layout with KPIs, trends, bars and milestones;
+- headless image generation suitable for CI.
 
----
+## Run locally
 
-## Dashboard Overview
-
-The dashboard contains 4 main sections:
-
-**KPI Cards** — Total matches, wins, draws, losses, goals scored,
-goals conceded, goal difference and overall win rate.
-
-**Monthly Win Rate Trend** — Line chart showing performance month by month
-from January 2024 to February 2026, colored by phase (crisis, transition,
-turnaround, champions).
-
-**Results by Competition** — Stacked horizontal bar chart comparing
-wins/draws/losses across Brasileirão, Copa do Brasil, Sul-Americana,
-Paulistão and Supercopa Rei.
-
-**Goals Scored vs Conceded by Phase** — Bar chart showing how the
-defensive and offensive numbers evolved across each phase.
-
-**Key Milestones Timeline** — Visual timeline of the most important
-moments of the journey.
-
----
-
-## Key Insights
-
-| Phase | Period | Win Rate | Goals Scored | Goals Conceded |
-|-------|--------|----------|--------------|----------------|
-| Crisis | H1 2024 | 28% | 1.0/match | 1.4/match |
-| Transition | Mid 2024 | 43% | 1.1/match | 1.0/match |
-| Turnaround | Late 2024 | 78% | 1.6/match | 0.6/match |
-| Recovery | 2025 | 70% | 1.4/match | 0.5/match |
-| Champion | 2026 | 100% | 2.0/match | 0.0/match |
-
-- Defense improved **before** offense — goals conceded dropped first
-- Memphis Depay's arrival was the clear inflection point
-- Yuri Alberto finished 2024 as Brazil's top scorer with 30 goals
-- The 0.004% Copa do Brasil qualification chance became a **title**
-
----
-
-## How to Run
-
-**1. Clone the repository:**
 ```bash
-git clone https://github.com/Willian-Yudy-F/corinthians-performance-analytics
-cd corinthians-performance-analytics
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python corinthians_dashboard.py
 ```
 
-**2. Install dependencies:**
+The command writes `corinthians_dashboard_2024_2026.png` beside the script. A different path can be supplied:
+
 ```bash
-pip3 install pandas matplotlib numpy
+python corinthians_dashboard.py --output output/dashboard.png
 ```
 
-**3. Run the dashboard:**
+## Quality checks
+
 ```bash
-python3 corinthians_dashboard.py
+python -m unittest discover -s tests -v
+python corinthians_dashboard.py --output /tmp/corinthians-dashboard.png
 ```
 
-The dashboard will open on screen and save a PNG to your Downloads folder.
+CI runs the tests and renders a fresh dashboard on Python 3.11 and 3.13.
 
----
+## Next improvement
 
-## Tech Stack
-
-| Tool | Usage |
-|------|-------|
-| Python 3.14 | Core language |
-| Pandas | Data manipulation and aggregation |
-| Matplotlib | Data visualization and dashboard layout |
-| NumPy | Numerical calculations |
-
----
-
-## Project Structure
+Replace the embedded sample with a CSV whose every row records its competition, official source URL and retrieval date. Only then should the dashboard present its KPIs as historical findings or make causal claims about coaches and players.
